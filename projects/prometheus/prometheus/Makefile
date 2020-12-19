@@ -60,11 +60,17 @@ npm_licenses:
 docker: clone
 	docker build -t $(IMAGE) -f ./$(REPO)/Dockerfile ./$(REPO)
 
+.PHONY: build-dependencies
+build-dependencies:
+	curl -sL https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo
+	amazon-linux-extras install epel -y
+	yum install nodejs npm yarn -y
+
 .PHONY: build
-build: local-images
+build: build-dependencies local-images
 
 .PHONY: release
-release: images
+release: build-dependencies images
 
 .PHONY: clean
 clean:
