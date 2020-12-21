@@ -63,8 +63,8 @@ docker: clone
 .PHONY: build-dependencies
 build-dependencies:
 	curl -sL https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo
-	amazon-linux-extras install epel -y
-	yum install nodejs npm yarn -y
+	curl -sL https://rpm.nodesource.com/setup_14.x | bash -
+	yum install nodejs yarn bzip2 -y
 
 .PHONY: build
 build: build-dependencies local-images
