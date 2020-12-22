@@ -22,14 +22,36 @@ IMAGE_NAME?=prometheus/prometheus
 # This tag is overwritten in the prow job to point to the commit hash
 IMAGE_TAG?=latest
 IMAGE?=$(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
+IMAGE_OS?="linux"
+IMAGE_ARCH?="amd64"
+
+.PHONY: build-dependencies
+build-dependencies:
+	curl -sL https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo
+	curl -sL https://rpm.nodesource.com/setup_14.x | bash -
+	yum install nodejs yarn bzip2 -y
 
 .PHONY: clone
 clone: clean
 	git clone $(CLONE_URL) $(REPO)
 	cd $(REPO) && git checkout tags/$(GIT_TAG)
 
+.PHONY: binaries
+binaries:
+	make -C $(REPO) build
+
+.PHONY: move-binaries
+move-binaries:
+	mkdir -p $(REPO)/.build/$(IMAGE_OS)-$(IMAGE_ARCH)
+	mv $(REPO)/prometheus $(REPO)/.build/$(IMAGE_OS)-$(IMAGE_ARCH)/
+	mv $(REPO)/promtool $(REPO)/.build/$(IMAGE_OS)-$(IMAGE_ARCH)
+
+.PHONY: npm_licenses
+npm_licenses:
+	make -C $(REPO) npm_licenses
+
 .PHONY: local-images
-local-images: clone binaries npm_licenses
+local-images: clone binaries move-binaries npm_licenses
 	# Sleep to wait for buildkitd to start up
 	sleep 10
 	buildctl \
@@ -41,7 +63,7 @@ local-images: clone binaries npm_licenses
 		--output type=oci,oci-mediatypes=true,name=$(IMAGE),dest=/tmp/prometheus.tar
 
 .PHONY: images
-images: clone binaries npm_licenses
+images: clone binaries move-binaries npm_licenses
 	# Sleep to wait for buildkitd to start up
 	sleep 10
 	buildctl \
@@ -51,24 +73,6 @@ images: clone binaries npm_licenses
 		--local dockerfile=./$(REPO) \
 		--local context=./$(REPO) \
 		--output type=image,oci-mediatypes=true,name=$(IMAGE),push=true
-
-.PHONY: npm_licenses
-npm_licenses:
-	make -C ./$(REPO) npm_licenses
-
-.PHONY: binaries
-binaries:
-	make -C ./$(REPO) build
-
-.PHONY: docker
-docker: clone
-	docker build -t $(IMAGE) -f ./$(REPO)/Dockerfile ./$(REPO)
-
-.PHONY: build-dependencies
-build-dependencies:
-	curl -sL https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo
-	curl -sL https://rpm.nodesource.com/setup_14.x | bash -
-	yum install nodejs yarn bzip2 -y
 
 .PHONY: build
 build: build-dependencies local-images
