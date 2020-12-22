@@ -1,6 +1,9 @@
 REPO?=prometheus
 CLONE_URL?=https://github.com/prometheus/$(REPO).git
-GIT_TAG?=$(shell cat GIT_TAG)
+
+# Using GIT_COMMIT instead of a TAG as we need recent changes made to dockerfile
+# This also avoids for us having to maintain a seperate dockerfile
+GIT_COMMIT?=$(shell cat GIT_COMMIT)
 
 ifeq ("$(CLONE_URL)","")
 	$(error No clone url was provided.)
@@ -10,7 +13,7 @@ ifeq ("$(REPO)","")
 	$(error No repository name was provided.)
 endif
 
-ifeq ("$(GIT_TAG)","")
+ifeq ("$(GIT_COMMIT)","")
 	$(error No git tag was provided.)
 endif
 
@@ -34,7 +37,7 @@ build-dependencies:
 .PHONY: clone
 clone: clean
 	git clone $(CLONE_URL) $(REPO)
-	cd $(REPO) && git checkout tags/$(GIT_TAG)
+	cd $(REPO) && git checkout tags/$(GIT_COMMIT)
 
 .PHONY: binaries
 binaries:
