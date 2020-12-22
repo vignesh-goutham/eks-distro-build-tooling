@@ -29,7 +29,7 @@ clone: clean
 	cd $(REPO) && git checkout tags/$(GIT_TAG)
 
 .PHONY: local-images
-local-images: clone npm_licenses
+local-images: clone binaries npm_licenses
 	# Sleep to wait for buildkitd to start up
 	sleep 10
 	buildctl \
@@ -41,7 +41,7 @@ local-images: clone npm_licenses
 		--output type=oci,oci-mediatypes=true,name=$(IMAGE),dest=/tmp/prometheus.tar
 
 .PHONY: images
-images: clone npm_licenses
+images: clone binaries npm_licenses
 	# Sleep to wait for buildkitd to start up
 	sleep 10
 	buildctl \
@@ -71,10 +71,10 @@ build-dependencies:
 	yum install nodejs yarn bzip2 -y
 
 .PHONY: build
-build: build-dependencies binaries local-images
+build: build-dependencies local-images
 
 .PHONY: release
-release: build-dependencies binaries images
+release: build-dependencies images
 
 .PHONY: clean
 clean:
