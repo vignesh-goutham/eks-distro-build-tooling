@@ -56,6 +56,10 @@ images: clone npm_licenses
 npm_licenses:
 	make -C ./$(REPO) npm_licenses
 
+.PHONY: binaries
+binaries:
+	make -C ./$(REPO) build
+
 .PHONY: docker
 docker: clone
 	docker build -t $(IMAGE) -f ./$(REPO)/Dockerfile ./$(REPO)
@@ -67,10 +71,10 @@ build-dependencies:
 	yum install nodejs yarn bzip2 -y
 
 .PHONY: build
-build: build-dependencies local-images
+build: build-dependencies binaries local-images
 
 .PHONY: release
-release: build-dependencies images
+release: build-dependencies binaries images
 
 .PHONY: clean
 clean:
