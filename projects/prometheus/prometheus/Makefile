@@ -37,7 +37,7 @@ build-dependencies:
 .PHONY: clone
 clone: clean
 	git clone $(CLONE_URL) $(REPO)
-	cd $(REPO) && git checkout tags/$(GIT_COMMIT)
+	cd $(REPO) && git checkout $(GIT_COMMIT)
 
 .PHONY: binaries
 binaries:
