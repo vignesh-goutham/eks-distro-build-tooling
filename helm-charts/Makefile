@@ -13,7 +13,7 @@ verify: install-toolchain
 	${CHART_ROOT}/scripts/verify-version.sh
 
 publish:
-	${CHART_ROOT}/scripts/publish-charts.sh
+	${CHART_ROOT}/scripts/publish-charts.sh ${CHART_ROOT}/stable/*
 
 release: install-toolchain publish
 
